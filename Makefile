@@ -16,6 +16,6 @@ run_producer:
 	./bin/producer.o ${wdir}:${wport} ${pproducts}
 
 compile:
-	gcc src/warehouse.c src/connections/connection.c src/products/product.c -o bin/warehouse.o -pthread
+	gcc src/warehouse.c src/connections/connection.c src/products/product.c src/utils/list.c src/utils/parser.c -o bin/warehouse.o -pthread
 	gcc src/consumer.c -o bin/consumer.o
 	gcc src/producer.c -o bin/producer.o
