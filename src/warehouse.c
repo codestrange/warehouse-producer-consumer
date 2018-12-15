@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include "connections/connection.h"
 #include "products/product.h"
 
@@ -19,7 +20,8 @@ int main(int argc, char const *argv[]) {
     /*Main Loop*/ 
     while(true){
         int clientfd = get_client_fd(listenfd);
-        
+        pthread_t ct;
+        pthread_create(&ct, NULL, &process_client, &clientfd);
     }
     
     return 0;
@@ -27,5 +29,6 @@ int main(int argc, char const *argv[]) {
 
 void process_client(void *raw_data) {
     int clientfd = *((int*) raw_data);
+    //Falta parsear la peticion del cliente
     return;
 }
