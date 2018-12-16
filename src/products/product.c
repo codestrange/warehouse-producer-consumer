@@ -157,3 +157,72 @@ void product_remove(Product *p, Warehouse *wh) {
     sem_post(wh->slots);
     sem_post(p->slots);
 }
+
+ProductDataList new_productdatalist(int capacity) {
+    ProductDataList list;
+    list.capacity = capacity;
+    list.array = malloc(capacity * sizeof(ProductData));
+    list.size = 0;
+    return list;
+}
+
+void insert_productdatalist(ProductDataList *list, int index, ProductData item) {
+    if (index < 0)
+        index = 0;
+    if (index > list->size)
+        index = list->size;
+    if (list->size == list->capacity) {
+        list->capacity *= 2;
+        list->array = realloc(list->array, list->capacity * sizeof(ProductData));
+    }
+    for (int i = list->size; i > index; --i)
+        list->array[i] = list->array[i - 1];
+    list->array[index] = item;
+    ++list->size;
+}
+
+void append_productdatalist(ProductDataList *list, ProductData item) {
+    insert_productdatalist(list, list->size, item);
+}
+
+void clear_productdatalist(ProductDataList *list) {
+    list->size = 0;
+}
+
+ProductData remove_productdatalist(ProductDataList *list, int index) {
+    if (index < 0)
+        index = 0;
+    if (index > list->size)
+        index = list->size;
+    ProductData item = list->array[index];
+    for (int i = index; i < list->size - 1; ++i)
+        list->array[i] = list->array[i + 1];
+    --list->size;
+    return item;
+}
+
+ProductData pop_productdatalist(ProductDataList *list) {
+    return remove_productdatalist(list, list->size - 1);
+}
+
+ProductData index_productdatalist(ProductDataList *list, int index) {
+    if (index < 0)
+        index = 0;
+    if (index > list->size)
+        index = list->size;
+    return list->array[index];
+}
+
+void free_productdatalist(ProductDataList *list) {
+    for (int i = 0; i < list->size; ++i) {
+        ProductData item = index_productdatalist(list, i);
+        free_product_data(&item);
+    }
+    free(list->array);
+}
+
+void free_product_data(ProductData *item) {
+    free(item->name);
+    free(item->data);
+    free(item->producer_name);
+}

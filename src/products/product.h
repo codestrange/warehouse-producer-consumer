@@ -11,6 +11,7 @@ typedef struct Product {
     sem_t *mutex;
     sem_t *slots;
     sem_t *items;
+    ProductDataList productsData;
 } Product;
 
 typedef struct ProductData {
@@ -19,6 +20,12 @@ typedef struct ProductData {
     int id;
     char* data;
 } ProductData;
+
+typedef struct ProductDataList {
+    ProductData *array;
+    int size;
+    int capacity;
+} ProductDataList;
 
 typedef struct ProductList {
     Product *array;
@@ -64,5 +71,23 @@ void warehouse_init(Warehouse *wh, int limit);
 void product_insert(Product *p, Warehouse *wh);
 
 void product_remove(Product *p, Warehouse *wh);
+
+ProductDataList new_productdatalist(int capacity);
+
+void insert_productdatalist(ProductDataList *list, int index, ProductData item);
+
+void append_productdatalist(ProductDataList *list, ProductData item);
+
+void clear_productdatalist(ProductDataList *list);
+
+ProductData remove_productdatalist(ProductDataList *list, int index);
+
+ProductData pop_productdatalist(ProductDataList *list);
+
+ProductData index_productdatalist(ProductDataList *list, int index);
+
+void free_productdatalist(ProductDataList *list);
+
+void free_product_data(ProductData *item);
 
 #endif
