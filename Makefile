@@ -15,6 +15,9 @@ run_consumer:
 run_producer: 
 	./bin/producer.o ${wdir}:${wport} ${pproducts}
 
+run_memory_check:
+	valgrind --leak-check=yes ./bin/warehouse.o ${wport} ${wproducts}
+
 compile:
 	gcc src/warehouse.c src/connections/connection.c src/products/product.c src/utils/list.c src/utils/parser.c -o bin/warehouse.o -pthread
 	gcc src/consumer.c -o bin/consumer.o

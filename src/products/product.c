@@ -84,13 +84,14 @@ ProductList parseProductList(char **arg) {
     CharCharList str = convert_CharCharList(arg);
     for (int i = 0; i < str.size; ++i) {
         CharList temp = index_charcharlist(&str, i);
-        char* chartemp = convert_arraychar(&temp);
+        char *chartemp = convert_arraychar(&temp);
         char **splited = str_split(chartemp, ':');
         free(chartemp);
         CharCharList charCharList = convert_CharCharList(splited);
-        while (**splited) {
-            free(*splited);
-            ++(*splited);
+        char **t = splited;
+        while (*t) {
+            free(*t);
+            ++t;
         }
         free(splited);
         if (charCharList.size >= 2) {
