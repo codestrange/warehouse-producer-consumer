@@ -13,58 +13,29 @@ void* process_client(void *raw_data) {
     //Falta parsear la peticion del cliente
     ProductList rp = new_productlist(10); //Solo para que compile
     bool writing = false; //Indica si el cliente es productor o consumidor
-    dprintf(clientfd, "Llegue al almacen.\n");// Notificar entrada
-    for (int rp_index = 0; rp_index < rp.size; ++rp_index) {
-        Product req = index_productlist(&rp, rp_index);
-        dprintf(clientfd, "Buscando producto %s.\n", req.name);// Notificar busqueda
-        bool end = false;
-        for (int p_index = 0; p_index < wh.products.size; ++p_index) {//Buscar si el producto a usar está almacenado    
-            Product act = index_productlist(&(wh.products), p_index);
-            if (strlen(req.name) == strlen(act.name) && strcmp(req.name, act.name) == 0) {//Productos iguales?
-                dprintf(clientfd, "Encontre el producto %s.\n", req.name);// Notificar hallazgo
-                while (true) {
-                    sem_wait(act.used);// Esperar hasta que no este utilizado el producto
-                    if (writing) { //Productor
-                        dprintf(clientfd, "Compruebando si puedo almacenar %d unidades del producto %s.\n", req.count, req.name);// Notificar intento
-                        if (((wh.limit < 0) || (wh.act_cant + req.count <= wh.limit)) && ((act.limit < 0) || (req.count + act.count <= act.limit))) {
-                            wh.act_cant += req.count;
-                            act.count += req.count;
-                            end = true;
-                            //Actualizar producto en la lista
-                            wh.products.array[p_index].count = act.count;
-                        }
-                        else {
-                            dprintf(clientfd, "No pude almacenar %d unidades del producto %s. Esperando...\n", req.count, req.name);// Notificar intento
-                        }
+    for (int i = 0; i < rp.size; ++i) {
+        bool finded = false;
+        Product pc = index_productlist(&rp, i);
+        for (int j = 0; j < wh.products.size; ++j) {
+            Product pw = index_productlist(&wh.products, j);
+            if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
+                finded = true;
+                for (int times = 0; times < pc.count; ++times) {
+                    if (writing) {
+                        dprintf(clientfd, "Comenze a colocar el producto %s en el almacen.\n", pc.name);
+                        product_insert(&pw, &wh);
+                        dprintf(clientfd, "Termine de colocar el producto %s en el almacen.\n", pc.name);
                     }
-                    else { //Consumidor
-                        dprintf(clientfd, "Compruebando si puedo consumir %d unidades del producto %s.\n", req.count, req.name);// Notificar intento
-                        if (act.count - req.count >= 0) {
-                            wh.act_cant -= req.count;
-                            act.count -= req.count;
-                            end = true;
-                            //Actualizar producto en la lista
-                            wh.products.array[p_index].count = act.count;
-                        }
-                        else {
-                            dprintf(clientfd, "No pude consumir %d unidades del producto %s. Esperando...\n", req.count, req.name);// Notificar intento
-                        }
+                    else {
+                        dprintf(clientfd, "Comenze a consumir el producto %s en el almacen.\n", pc.name);
+                        product_remove(&pw, &wh);
+                        dprintf(clientfd, "Termine de consumir el producto %s en el almacen.\n", pc.name);
                     }
-                    sem_post(act.used);// Terminar de utilizar el producto
-                    if (end) break; // Si se pudo completar la petición del producto continua sino espera
                 }
-                if (end) break;
             }
-            // if (!end) {//Producto no encontrado
-            //     --rp_index;//Forzar nueva revision
-            //     //Añadir el nuevo producto al listado del almacen
-            //     Product newp;
-            //     newp.name = strdup(req.name);
-            //     newp.count = 0;
-            //     newp.limit = -1;// Nuevos productos no tienes limite en el almacen
-            //     newp.used = malloc(1 * sizeof(sem_t));
-            //     sem_init(newp.used, 0, 1);
-            // }
+        }
+        if (!finded) {
+            printf("El producto no se encontraba.\n");
         }
     }
 
@@ -79,25 +50,21 @@ int main(int argc, char const *argv[]) {
     /*Fin de la Preparación*/
 
     /*Iniciando la estructura del almacen*/
-    wh.limit = atoi(argv[2]);
-    if (wh.limit == 0) {
+    int limit = atoi(argv[2]);
+    warehouse_init(&wh, limit);
+    if (limit == 0) {
         wh.products = parseProductList((char**)(argv + 2));
     }
     else {
         wh.products = parseProductList((char**)(argv + 3));
     }
-    wh.limit = -1;
     for (int i = 0; i < wh.products.size; ++i) {
         Product p = index_productlist(&(wh.products), i);
         remove_productlist(&(wh.products), i);
-        p.limit = p.count;
-        p.used = malloc(1 * sizeof(sem_t));
-        sem_init(p.used, 0, 1);
-        p.count = 0;
+        product_init(&p, p.count);
+        printf("name:%s count:%d limit:%d\n", p.name, p.count, p.limit);
         insert_productlist(&(wh.products), i, p);
     }
-    wh.act_cant = 0;
-    //Falta iniciar la lista de productos de wh
     /*Fin de la inicialización*/
 
     /*Ciclo Principal*/ 
@@ -105,6 +72,7 @@ int main(int argc, char const *argv[]) {
         int clientfd = get_client_fd(listenfd);
         pthread_t ct;
         pthread_create(&ct, NULL, &process_client, &clientfd);
+        pthread_detach(ct);
     }
     return 0;
 }

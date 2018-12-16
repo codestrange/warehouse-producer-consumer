@@ -107,3 +107,53 @@ ProductList parseProductList(char **arg) {
     free_charcharlist(&str);
     return productList;
 }
+
+void product_init(Product *p, int limit) {
+    if (limit == 0) limit = RAND_MAX;
+    p->limit = limit;
+    p->count = 0;
+    p->mutex = malloc(1 * sizeof(sem_t));
+    p->slots = malloc(1 * sizeof(sem_t));
+    p->items = malloc(1 * sizeof(sem_t));
+    sem_init(p->mutex, 0, 1);
+    sem_init(p->slots, 0, limit);
+    sem_init(p->items, 0, 0);
+}
+
+void warehouse_init(Warehouse *wh, int limit) {
+    if (limit == 0) limit = RAND_MAX;
+    wh->limit = limit;
+    wh->act_cant = 0;
+    wh->mutex = malloc(1 * sizeof(sem_t));
+    wh->slots = malloc(1 * sizeof(sem_t));
+    wh->items = malloc(1 * sizeof(sem_t));
+    sem_init(wh->mutex, 0, 1);
+    sem_init(wh->slots, 0, limit);
+    sem_init(wh->items, 0, 0);
+}
+
+void product_insert(Product *p, Warehouse *wh) {
+    sem_wait(p->slots);
+    sem_wait(wh->slots);
+    sem_wait(p->mutex);
+    sem_wait(wh->mutex);
+    ++p->count;
+    ++wh->act_cant;
+    sem_post(wh->mutex);
+    sem_post(p->mutex);
+    sem_wait(wh->items);
+    sem_post(p->items);
+}
+
+void product_remove(Product *p, Warehouse *wh) {
+    sem_wait(p->items);
+    sem_wait(wh->items);
+    sem_wait(p->mutex);
+    sem_wait(wh->mutex);
+    --p->count;
+    --wh->act_cant;
+    sem_post(wh->mutex);
+    sem_post(p->mutex);
+    sem_post(wh->slots);
+    sem_post(p->slots);
+}
