@@ -132,26 +132,32 @@ void warehouse_init(Warehouse *wh, int limit) {
     sem_init(wh->items, 0, 0);
 }
 
-void product_insert(Product *p, Warehouse *wh) {
+void product_insert(Product *p, Warehouse *wh, ProductData data) {
     sem_wait(p->slots);
     sem_wait(wh->slots);
     sem_wait(p->mutex);
     sem_wait(wh->mutex);
     ++p->count;
     ++wh->act_cant;
+    append_productdatalist(&p->productsData, data);
     sem_post(wh->mutex);
     sem_post(p->mutex);
     sem_wait(wh->items);
     sem_post(p->items);
 }
 
-void product_remove(Product *p, Warehouse *wh) {
+void product_remove(Product *p, Warehouse *wh, ProductData *data) {
     sem_wait(p->items);
     sem_wait(wh->items);
     sem_wait(p->mutex);
     sem_wait(wh->mutex);
     --p->count;
     --wh->act_cant;
+    ProductData ret = remove_productdatalist(&p->productsData, 0);
+    data->name = ret.name;
+    data->id = ret.id;
+    data->producer_name = ret.producer_name;
+    data->data = ret.data;
     sem_post(wh->mutex);
     sem_post(p->mutex);
     sem_post(wh->slots);

@@ -11,26 +11,23 @@ Warehouse wh;
 void* process_client(void *raw_data) {
     int clientfd = *((int*) raw_data); //Contiene el fd de la conexion del cliente
     //Falta parsear la peticion del cliente
-    ProductList rp = new_productlist(10); //Solo para que compile
+    ProductDataList rp = new_productdatalist(10); //Solo para que compile
     bool writing = false; //Indica si el cliente es productor o consumidor
     for (int i = 0; i < rp.size; ++i) {
         bool finded = false;
-        Product pc = index_productlist(&rp, i);
+        ProductData pc = index_productdatalist(&rp, i);
         for (int j = 0; j < wh.products.size; ++j) {
             Product pw = index_productlist(&wh.products, j);
             if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
                 finded = true;
-                for (int times = 0; times < pc.count; ++times) {
-                    if (writing) {
-                        dprintf(clientfd, "Comenze a colocar el producto %s en el almacen.\n", pc.name);
-                        product_insert(&pw, &wh);
-                        dprintf(clientfd, "Termine de colocar el producto %s en el almacen.\n", pc.name);
-                    }
-                    else {
-                        dprintf(clientfd, "Comenze a consumir el producto %s en el almacen.\n", pc.name);
-                        product_remove(&pw, &wh);
-                        dprintf(clientfd, "Termine de consumir el producto %s en el almacen.\n", pc.name);
-                    }
+                if (writing) {
+                    product_insert(&pw, &wh, pc);
+                    //Falta notificar la insercion al cliente
+                }
+                else {
+                    ProductData ret;
+                    product_remove(&pw, &wh, &ret);
+                    //Falta comunicar ret al cliente
                 }
             }
         }
@@ -62,7 +59,7 @@ int main(int argc, char const *argv[]) {
         Product p = index_productlist(&(wh.products), i);
         remove_productlist(&(wh.products), i);
         product_init(&p, p.count);
-        printf("name:%s count:%d limit:%d\n", p.name, p.count, p.limit);
+        p.productsData = new_productdatalist(100);
         insert_productlist(&(wh.products), i, p);
     }
     /*Fin de la inicialización*/

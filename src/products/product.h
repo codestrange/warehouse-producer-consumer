@@ -3,17 +3,6 @@
 #include <semaphore.h>
 #include "../utils/list.h"
 
-typedef struct Product {
-    char *name;
-    char *prodid;
-    int count;
-    int limit;
-    sem_t *mutex;
-    sem_t *slots;
-    sem_t *items;
-    ProductDataList productsData;
-} Product;
-
 typedef struct ProductData {
     char *name;
     char *producer_name;
@@ -26,6 +15,16 @@ typedef struct ProductDataList {
     int size;
     int capacity;
 } ProductDataList;
+
+typedef struct Product {
+    char *name;
+    int count;
+    int limit;
+    sem_t *mutex;
+    sem_t *slots;
+    sem_t *items;
+    ProductDataList productsData;
+} Product;
 
 typedef struct ProductList {
     Product *array;
@@ -68,9 +67,9 @@ void product_init(Product *p, int limit);
 
 void warehouse_init(Warehouse *wh, int limit);
 
-void product_insert(Product *p, Warehouse *wh);
+void product_insert(Product *p, Warehouse *wh, ProductData data);
 
-void product_remove(Product *p, Warehouse *wh);
+void product_remove(Product *p, Warehouse *wh, ProductData *data);
 
 ProductDataList new_productdatalist(int capacity);
 
