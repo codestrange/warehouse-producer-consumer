@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "product.h"
 #include "../utils/list.h"
 #include "../utils/parser.h"
@@ -58,6 +59,10 @@ Product index_productlist(ProductList *list, int index) {
     return list->array[index];
 }
 
+void free_product(Product *product) {
+    free(product->name);
+}
+
 void free_productlist(ProductList *list) {
     for (int i = 0; i < list->size; ++i) {
         Product product = index_productlist(list, i);
@@ -66,46 +71,72 @@ void free_productlist(ProductList *list) {
     free(list->array);
 }
 
-void free_product(Product *product) {
-    free(product->name);
+ProductDataList new_productdatalist(int capacity) {
+    ProductDataList list;
+    list.capacity = capacity;
+    list.array = malloc(capacity * sizeof(ProductData));
+    list.size = 0;
+    return list;
 }
 
-int parseInt(CharList *charList) {
-    int integer = 0;
-    for (int i = 0; i < charList->size; ++i) {
-        char c = index_charlist(charList, i);
-        integer = integer * 10 + (c - '0');
+void insert_productdatalist(ProductDataList *list, int index, ProductData item) {
+    if (index < 0)
+        index = 0;
+    if (index > list->size)
+        index = list->size;
+    if (list->size == list->capacity) {
+        list->capacity *= 2;
+        list->array = realloc(list->array, list->capacity * sizeof(ProductData));
     }
-    return integer;
+    for (int i = list->size; i > index; --i)
+        list->array[i] = list->array[i - 1];
+    list->array[index] = item;
+    ++list->size;
 }
 
-ProductList parseProductList(char **arg) {
-    ProductList productList = new_productlist(10);
-    CharCharList str = convert_CharCharList(arg);
-    for (int i = 0; i < str.size; ++i) {
-        CharList temp = index_charcharlist(&str, i);
-        char *chartemp = convert_arraychar(&temp);
-        char **splited = str_split(chartemp, ':');
-        free(chartemp);
-        CharCharList charCharList = convert_CharCharList(splited);
-        char **t = splited;
-        while (*t) {
-            free(*t);
-            ++t;
-        }
-        free(splited);
-        if (charCharList.size >= 2) {
-            Product product;
-            CharList charListName = index_charcharlist(&charCharList, 0);
-            CharList charListCount = index_charcharlist(&charCharList, 1);
-            product.name = convert_arraychar(&charListName);
-            product.count = parseInt(&charListCount);
-            append_productlist(&productList, product);
-        }
-        free_charcharlist(&charCharList);
+void append_productdatalist(ProductDataList *list, ProductData item) {
+    insert_productdatalist(list, list->size, item);
+}
+
+void clear_productdatalist(ProductDataList *list) {
+    list->size = 0;
+}
+
+ProductData remove_productdatalist(ProductDataList *list, int index) {
+    if (index < 0)
+        index = 0;
+    if (index > list->size)
+        index = list->size;
+    ProductData item = list->array[index];
+    for (int i = index; i < list->size - 1; ++i)
+        list->array[i] = list->array[i + 1];
+    --list->size;
+    return item;
+}
+
+ProductData pop_productdatalist(ProductDataList *list) {
+    return remove_productdatalist(list, list->size - 1);
+}
+
+ProductData index_productdatalist(ProductDataList *list, int index) {
+    if (index < 0)
+        index = 0;
+    if (index > list->size)
+        index = list->size;
+    return list->array[index];
+}
+
+void free_product_data(ProductData *item) {
+    free(item->name);
+    free(item->data);
+    free(item->producer_name);
+}
+void free_productdatalist(ProductDataList *list) {
+    for (int i = 0; i < list->size; ++i) {
+        ProductData item = index_productdatalist(list, i);
+        free_product_data(&item);
     }
-    free_charcharlist(&str);
-    return productList;
+    free(list->array);
 }
 
 void product_init(Product *p, int limit) {
@@ -164,73 +195,112 @@ void product_remove(Product *p, Warehouse *wh, ProductData *data) {
     sem_post(p->slots);
 }
 
-ProductDataList new_productdatalist(int capacity) {
-    ProductDataList list;
-    list.capacity = capacity;
-    list.array = malloc(capacity * sizeof(ProductData));
-    list.size = 0;
-    return list;
-}
-
-void insert_productdatalist(ProductDataList *list, int index, ProductData item) {
-    if (index < 0)
-        index = 0;
-    if (index > list->size)
-        index = list->size;
-    if (list->size == list->capacity) {
-        list->capacity *= 2;
-        list->array = realloc(list->array, list->capacity * sizeof(ProductData));
+int parseInt(CharList *charList) {
+    int integer = 0;
+    for (int i = 0; i < charList->size; ++i) {
+        char c = index_charlist(charList, i);
+        integer = integer * 10 + (c - '0');
     }
-    for (int i = list->size; i > index; --i)
-        list->array[i] = list->array[i - 1];
-    list->array[index] = item;
-    ++list->size;
+    return integer;
 }
 
-void append_productdatalist(ProductDataList *list, ProductData item) {
-    insert_productdatalist(list, list->size, item);
-}
-
-void clear_productdatalist(ProductDataList *list) {
-    list->size = 0;
-}
-
-ProductData remove_productdatalist(ProductDataList *list, int index) {
-    if (index < 0)
-        index = 0;
-    if (index > list->size)
-        index = list->size;
-    ProductData item = list->array[index];
-    for (int i = index; i < list->size - 1; ++i)
-        list->array[i] = list->array[i + 1];
-    --list->size;
-    return item;
-}
-
-ProductData pop_productdatalist(ProductDataList *list) {
-    return remove_productdatalist(list, list->size - 1);
-}
-
-ProductData index_productdatalist(ProductDataList *list, int index) {
-    if (index < 0)
-        index = 0;
-    if (index > list->size)
-        index = list->size;
-    return list->array[index];
-}
-
-void free_productdatalist(ProductDataList *list) {
-    for (int i = 0; i < list->size; ++i) {
-        ProductData item = index_productdatalist(list, i);
-        free_product_data(&item);
+ProductList parseProductList(char **arg) {
+    CharCharList str = convert_CharCharList(arg);
+    ProductList productList = new_productlist(10);
+    if (!(*arg))
+        return productList;
+    for (int i = 0; i < str.size; ++i) {
+        CharList temp = index_charcharlist(&str, i);
+        char *chartemp = convert_arraychar(&temp);
+        char **splited = str_split(chartemp, ':');
+        free(chartemp);
+        CharCharList charCharList = convert_CharCharList(splited);
+        while (**splited) {
+            free(*splited);
+            ++(*splited);
+        }
+        free(splited);
+        if (charCharList.size >= 2) {
+            Product product;
+            CharList charListName = index_charcharlist(&charCharList, 0);
+            CharList charListCount = index_charcharlist(&charCharList, 1);
+            product.name = convert_arraychar(&charListName);
+            product.count = parseInt(&charListCount);
+            append_productlist(&productList, product);
+        }
+        free_charcharlist(&charCharList);
     }
-    free(list->array);
+    free_charcharlist(&str);
+    return productList;
 }
 
-void free_product_data(ProductData *item) {
-    free(item->name);
-    free(item->data);
-    free(item->producer_name);
+ProductDataList parseProductDataListConsumer(char **arg) {
+    CharCharList str = convert_CharCharList(arg);
+    ProductDataList products = new_productdatalist(10);
+    if (!(*arg)) {
+        free_charcharlist(&str);
+        return products;
+    }
+    for (int i = 0; i < str.size; ++i) {
+        CharList temp = index_charcharlist(&str, i);
+        char *chartemp = convert_arraychar(&temp);
+        char **splited = str_split(chartemp, ':');
+        free(chartemp);
+        CharCharList charCharList = convert_CharCharList(splited);
+        while (**splited) {
+            free(*splited);
+            ++(*splited);
+        }
+        free(splited);
+        if (charCharList.size >= 2) {
+            CharList charListName = index_charcharlist(&charCharList, 0);
+            CharList charListCount = index_charcharlist(&charCharList, 1);
+            char *name = convert_arraychar(&charListName);
+            char *temp_count = convert_arraychar(&charListCount);
+            int count = atoi(temp_count);
+            free(temp_count);
+            while (count--) {
+                ProductData product;
+                product.name = name;
+                product.producer_name = "";
+                product.id = 0;
+                product.data = "";
+                append_productdatalist(&products, product);
+            }
+        }
+        free_charcharlist(&charCharList);
+    }
+    free_charcharlist(&str);
+    return products;
+}
+
+ProductDataList parseProductDataListProducer(char **arg) {
+    CharCharList str = convert_CharCharList(arg);
+    ProductDataList products = new_productdatalist(10);
+    if (!(*arg)) {
+        free_charcharlist(&str);
+        return products;
+    }
+    for (int i = 0; i < str.size; i += 4) {
+        if (i + 4 > str.size) {
+            free_charcharlist(&str);
+            return products;
+        }
+        CharList name = index_charcharlist(&str, i);
+        CharList producer_name = index_charcharlist(&str, i + 1);
+        CharList id = index_charcharlist(&str, i + 2);
+        CharList data = index_charcharlist(&str, i + 3);
+        ProductData product;
+        product.name = convert_arraychar(&name);
+        product.producer_name = convert_arraychar(&producer_name);
+        char *temp = convert_arraychar(&id);
+        product.id = atoi(temp);
+        free(temp);
+        product.data = convert_arraychar(&data);
+        append_productdatalist(&products, product);
+    }
+    free_charcharlist(&str);
+    return products;
 }
 
 int get_size(Warehouse *wh) {
@@ -238,4 +308,25 @@ int get_size(Warehouse *wh) {
     int t = wh->products.size;
     sem_post(wh->mutex);
     return t;
+}
+
+Request parseRequest(char *str) {
+    char **splited = str_split(str, ' ');
+    Request request;
+    if (!strncmp(*splited, "consumer", 8) && strlen(*splited) == 8)
+        request.type = CONSUMER;
+    else if (!strncmp(*splited, "producer", 8) && strlen(*splited) == 8)
+        request.type = PRODUCER;
+    else {
+        request.type = ERROR;
+        return request;
+    }
+    (splited)++;
+    ProductDataList productDataList;
+    if (request.type == CONSUMER)
+        productDataList = parseProductDataListConsumer(splited);
+    else
+        productDataList = parseProductDataListProducer(splited);
+    request.products = productDataList;
+    return request;
 }

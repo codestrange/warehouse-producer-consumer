@@ -3,6 +3,10 @@
 #include <semaphore.h>
 #include "../utils/list.h"
 
+#define CONSUMER 0
+#define PRODUCER 1
+#define ERROR -1
+
 typedef struct ProductData {
     char *name;
     char *producer_name;
@@ -41,6 +45,11 @@ typedef struct Warehouse {
     sem_t *items;
 } Warehouse;
 
+typedef struct Request {
+    int type;
+    ProductDataList products;
+} Request;
+
 ProductList new_productlist(int capacity);
 
 void insert_productlist(ProductList *list, int index, Product item);
@@ -55,21 +64,9 @@ Product pop_productlist(ProductList *list);
 
 Product index_productlist(ProductList *list, int index);
 
-void free_productlist(ProductList *list);
-
 void free_product(Product *product);
 
-int parseInt(CharList *charList);
-
-ProductList parseProductList(char **arg);
-
-void product_init(Product *p, int limit);
-
-void warehouse_init(Warehouse *wh, int limit);
-
-void product_insert(Product *p, Warehouse *wh, ProductData data);
-
-void product_remove(Product *p, Warehouse *wh, ProductData *data);
+void free_productlist(ProductList *list);
 
 ProductDataList new_productdatalist(int capacity);
 
@@ -90,5 +87,23 @@ void free_productdatalist(ProductDataList *list);
 void free_product_data(ProductData *item);
 
 int get_size(Warehouse *wh);
+
+void product_init(Product *p, int limit);
+
+void warehouse_init(Warehouse *wh, int limit);
+
+void product_insert(Product *p, Warehouse *wh, ProductData data);
+
+void product_remove(Product *p, Warehouse *wh, ProductData *data);
+
+int parseInt(CharList *charList);
+
+ProductList parseProductList(char **arg);
+
+ProductDataList parseProductDataListConsumer(char **arg);
+
+ProductDataList parseProductDataListProducer(char **arg);
+
+Request parseRequest(char *str);
 
 #endif
