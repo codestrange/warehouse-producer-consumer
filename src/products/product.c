@@ -142,7 +142,7 @@ void product_insert(Product *p, Warehouse *wh, ProductData data) {
     append_productdatalist(&p->productsData, data);
     sem_post(wh->mutex);
     sem_post(p->mutex);
-    sem_wait(wh->items);
+    sem_post(wh->items);
     sem_post(p->items);
 }
 
@@ -231,4 +231,11 @@ void free_product_data(ProductData *item) {
     free(item->name);
     free(item->data);
     free(item->producer_name);
+}
+
+int get_size(Warehouse *wh) {
+    sem_wait(wh->mutex);
+    int t = wh->products.size;
+    sem_post(wh->mutex);
+    return t;
 }

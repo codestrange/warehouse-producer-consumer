@@ -27,7 +27,8 @@ void* process_client(void *raw_data) {
                 else {
                     ProductData ret;
                     product_remove(&pw, &wh, &ret);
-                    //Falta comunicar ret al cliente
+                    dprintf(clientfd,"%s %s %d %s", ret.name, ret.producer_name, ret.id, ret.data);
+                    free_product_data(&ret);
                 }
             }
         }
