@@ -195,6 +195,28 @@ void product_remove(Product *p, Warehouse *wh, ProductData *data) {
     sem_post(p->slots);
 }
 
+void product_tryremove(Product *p, Warehouse *wh, ProductData *data) {
+
+    if(sem_trywait(p->items) < 0) {
+        data = NULL;
+        return;
+    }
+    sem_wait(wh->items);
+    sem_wait(p->mutex);
+    sem_wait(wh->mutex);
+    --p->count;
+    --wh->act_cant;
+    ProductData ret = remove_productdatalist(&p->productsData, 0);
+    data->name = ret.name;
+    data->id = ret.id;
+    data->producer_name = ret.producer_name;
+    data->data = ret.data;
+    sem_post(wh->mutex);
+    sem_post(p->mutex);
+    sem_post(wh->slots);
+    sem_post(p->slots);
+}
+
 int parseInt(CharList *charList) {
     int integer = 0;
     for (int i = 0; i < charList->size; ++i) {
