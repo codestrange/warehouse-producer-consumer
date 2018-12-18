@@ -21,4 +21,4 @@ run_memory_check:
 compile:
 	gcc src/warehouse.c src/connections/connection.c src/products/product.c src/utils/list.c src/utils/parser.c -o bin/warehouse.o -pthread
 	gcc src/consumer.c -o bin/consumer.o
-	gcc src/producer.c -o bin/producer.o
+	gcc src/producer.c src/products/product.c src/utils/list.c src/utils/parser.c -o bin/producer.o -pthread
