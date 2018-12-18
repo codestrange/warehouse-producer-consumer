@@ -41,25 +41,8 @@ int main(int argc, char **argv) {
     ProductList products = new_productlist(10);
     ProductList servers = new_productlist(10);
     parseArguments(argv + 1, &products, &servers);
-    CharList _str_products = convert_CharList("producer ");
-    for (int i = 0; i < products.size; ++i) {
-        Product actual = index_productlist(&products, i);
-        CharList name = convert_CharList(actual.name);
-        CharList count = convert_intToCharList(actual.count);
-        for (int j = 0; j < name.size; ++j) {
-            char c = index_charlist(&name, j);
-            append_charlist(&_str_products, c);
-        }
-        append_charlist(&_str_products, ':');
-        for (int j = 0; j < count.size; ++j) {
-            char c = index_charlist(&count, j);
-            append_charlist(&_str_products, c);
-        }
-        append_charlist(&_str_products, ' ');
-    }
-    char *str_products = convert_arraychar(&_str_products);
-    free_charlist(&_str_products);
     int index_server = -1;
+    int counter_product = 0;
     while (true) {
         sleep(1);
         Product server = index_productlist(&servers, ++index_server);
@@ -72,7 +55,16 @@ int main(int argc, char **argv) {
         inet_aton(ip, &sock.sin_addr);
         if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
             printf("Produciendo hacia el Almacén con IP: %s\n", server.name);
+            char *str_products = malloc(100000);
+            sprintf(str_products, "producer ");
+            for (int i = 0; i < products.size; ++i) {
+                Product actual = index_productlist(&products, i);
+                int count = actual.count;
+                while (count--)
+                    sprintf(str_products, "%s producer %d data ", actual.name, ++counter_product);
+            }
             dprintf(clientfd, "%s", str_products);
+            free(str_products);
             char c;
             while (read(clientfd, &c, 1)) { }
             printf("Producción terminada en el Almacén con IP: %s\n", server.name);
