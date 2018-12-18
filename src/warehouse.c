@@ -13,6 +13,7 @@ void* process_client(void *raw_data) {
     bzero(buf, 2050);
     int clientfd = *((int*) raw_data); //Contiene el fd de la conexion del cliente
     read(clientfd, buf, 2048);
+    printf("Procesando peticion: %s.\n", buf);
     Request req = parseRequest(buf);
     ProductDataList rp = req.products;
     bool writing = false;
@@ -22,6 +23,7 @@ void* process_client(void *raw_data) {
     for (int i = 0; i < rp.size; ++i) {
         bool finded = false;
         ProductData pc = index_productdatalist(&rp, i);
+        printf("Almacenando producto %s\n", pc.name);
         for (int j = 0; j < get_size(&wh); ++j) {
             Product pw = index_productlist(&wh.products, j);
             if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
@@ -48,7 +50,8 @@ void* process_client(void *raw_data) {
             --i;
         }
     }
-
+    printf("Fin de peticion.\n");
+    close(clientfd);
     return 0;
 }
 
@@ -79,10 +82,13 @@ int main(int argc, char const *argv[]) {
 
     /*Ciclo Principal*/ 
     while(true){
+        printf("Esperando Conexión.\n");
         int clientfd = get_client_fd(listenfd);
-        pthread_t ct;
-        pthread_create(&ct, NULL, &process_client, &clientfd);
-        pthread_detach(ct);
+        pthread_t *ct = malloc(1 * sizeof(pthread_t));
+        printf("Conexión establecida.\n");
+        pthread_create(ct, NULL, &process_client, &clientfd);
+        pthread_detach(*ct);
+        free(ct);
     }
     return 0;
 }
