@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
                 Product actual = index_productlist(&products, i);
                 int count = actual.count;
                 while (count--)
-                    sprintf(str_products, "%s producer %d data ", actual.name, ++counter_product);
+                    sprintf(str_products, "%s %s producer %d data", str_products, actual.name, ++counter_product);
             }
             dprintf(clientfd, "%s", str_products);
             free(str_products);
