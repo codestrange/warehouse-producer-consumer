@@ -28,15 +28,6 @@ void parseArguments(char **args, ProductList *products, ProductList *servers) {
     }
 }
 
-CharList convert_intToCharList(int x) {
-    CharList charList = new_charlist(10);
-    while (x) {
-        insert_charlist(&charList, 0, (x % 10) + '0');
-        x /= 10;
-    }
-    return charList;
-}
-
 int main(int argc, char **argv) {
     if (argc < 4) {
         printf("Error: Se necesitan tres parametros. El nombre del productor, la dirección del almacén y el descripción de un producto.\n");
