@@ -36,18 +36,18 @@ void* process_client(void *raw_data) {
         bool finded = false;
         ProductData pc = index_productdatalist(&rp, i);
         for (int j = 0; j < get_size(&wh); ++j) {
-            Product pw = index_productlist(&wh.products, j);
-            if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
+            Product *pw = indexref_productlist(&wh.products, j);
+            if (strlen(pw->name) == strlen(pc.name) && strcmp(pw->name, pc.name) == 0) {
                 finded = true;
                 if (writing) {
                     // printf("Almacenando producto de tipo %s.\n", pc.name);
-                    product_insert(&pw, &wh, pc);
+                    product_insert(pw, &wh, pc);
                     // printf("Producto de tipo %s almacenado.\n", pc.name);
                 }
                 else {
                     ProductData ret;
                     // printf("Consumiendo producto de tipo %s.\n", pc.name);
-                    product_remove(&pw, &wh, &ret);
+                    product_remove(pw, &wh, &ret);
                     // printf("Consumido producto de tipo %s.\n", pc.name);
                     dprintf(clientfd,"%s %s %d %s\0", ret.name, ret.producer_name, ret.id, ret.data);
                     //free_product_data(&ret);
