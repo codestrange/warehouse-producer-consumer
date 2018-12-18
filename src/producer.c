@@ -38,9 +38,18 @@ CharList convert_intToCharList(int x) {
 }
 
 int main(int argc, char **argv) {
+    if (argc < 4) {
+        printf("Error: Se necesitan tres parametros. El nombre del productor, la dirección del almacén y el descripción de un producto.\n");
+        return 0;
+    }
+    char *producer_name = argv[1];
     ProductList products = new_productlist(10);
     ProductList servers = new_productlist(10);
-    parseArguments(argv + 1, &products, &servers);
+    parseArguments(argv + 2, &products, &servers);
+    if (!servers.size || !products.size) {
+        printf("Error: Se necesitan tres parametros. El nombre del productor, la dirección del almacén y el descripción de un producto.\n");
+        return 0;
+    }
     int index_server = -1;
     int counter_product = 0;
     while (true) {
@@ -61,7 +70,7 @@ int main(int argc, char **argv) {
                 Product actual = index_productlist(&products, i);
                 int count = actual.count;
                 while (count--)
-                    sprintf(str_products, "%s %s producer %d data", str_products, actual.name, ++counter_product);
+                    sprintf(str_products, "%s %s %s %d data", str_products, actual.name, producer_name, ++counter_product);
             }
             dprintf(clientfd, "%s", str_products);
             free(str_products);
