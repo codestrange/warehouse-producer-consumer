@@ -59,10 +59,7 @@ int main(int argc, char **argv) {
                 inet_aton(ip, &sock.sin_addr);
                 if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
                     printf("Produciendo hacia el Almacén con IP: %s y Puerto: %d el producto con Nombre: %s y Id: %d\n", server.name, server.count, actual.name, counter_product + 1);
-                    char *str_products = malloc(100000);
-                    sprintf(str_products, "producer %s %s %d data", actual.name, producer_name, ++counter_product);
-                    dprintf(clientfd, "%s", str_products);
-                    free(str_products);
+                    dprintf(clientfd, "producer %s %s %d data", actual.name, producer_name, ++counter_product);
                     char c;
                     while (read(clientfd, &c, 1)) { }
                     printf("Producción terminada en el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
