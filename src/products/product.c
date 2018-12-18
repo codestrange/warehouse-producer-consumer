@@ -59,6 +59,14 @@ Product index_productlist(ProductList *list, int index) {
     return list->array[index];
 }
 
+Product *indexref_productlist(ProductList *list, int index) {
+    if (index < 0)
+        index = 0;
+    if (index > list->size)
+        index = list->size;
+    return &list->array[index];
+}
+
 void free_product(Product *product) {
     free(product->name);
 }
