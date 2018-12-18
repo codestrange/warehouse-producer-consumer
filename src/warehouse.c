@@ -8,6 +8,16 @@
 
 Warehouse wh;
 
+void print_status(Warehouse *wh) {
+    sem_wait(wh->mutex);
+    printf("Estado del Almacen\nAlmacenados: %d Capacidad: %d\n", wh->act_cant, wh->limit);
+    for (int i = 0; i < wh->products.size; ++i) {
+        Product p = index_productlist(&wh->products, i);
+        printf("Producto %s\nAlmacenados: %d\nCapacidad: %d\n",p.name, p.count, p.limit);
+    }
+    sem_post(wh->mutex);
+}
+
 void* process_client(void *raw_data) {
     char *buf = malloc(2050 * sizeof(char));
     bzero(buf, 2050);
@@ -26,18 +36,18 @@ void* process_client(void *raw_data) {
         bool finded = false;
         ProductData pc = index_productdatalist(&rp, i);
         for (int j = 0; j < get_size(&wh); ++j) {
-            Product pw = index_productlist(&wh.products, j);
-            if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
+            Product *pw = indexref_productlist(&wh.products, j);
+            if (strlen(pw->name) == strlen(pc.name) && strcmp(pw->name, pc.name) == 0) {
                 finded = true;
                 if (writing) {
                     // printf("Almacenando producto de tipo %s.\n", pc.name);
-                    product_insert(&pw, &wh, pc);
+                    product_insert(pw, &wh, pc);
                     // printf("Producto de tipo %s almacenado.\n", pc.name);
                 }
                 else {
                     ProductData ret;
                     // printf("Consumiendo producto de tipo %s.\n", pc.name);
-                    product_remove(&pw, &wh, &ret);
+                    product_remove(pw, &wh, &ret);
                     // printf("Consumido producto de tipo %s.\n", pc.name);
                     dprintf(clientfd,"%s %s %d %s\0", ret.name, ret.producer_name, ret.id, ret.data);
                     //free_product_data(&ret);
@@ -91,6 +101,7 @@ int main(int argc, char const *argv[]) {
         int clientfd = get_client_fd(listenfd);
         pthread_t *ct = malloc(1 * sizeof(pthread_t));
         printf("Conexión establecida.\n");
+        print_status(&wh);
         pthread_create(ct, NULL, &process_client, &clientfd);
         pthread_detach(*ct);
         free(ct);
