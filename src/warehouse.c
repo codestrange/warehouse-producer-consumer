@@ -8,6 +8,16 @@
 
 Warehouse wh;
 
+void print_status(Warehouse *wh) {
+    sem_wait(wh->mutex);
+    printf("Estado del Almacen\nAlmacenados: %d Capacidad: %d\n", wh->act_cant, wh->limit);
+    for (int i = 0; i < wh->products.size; ++i) {
+        Product p = index_productlist(&wh->products, i);
+        printf("Producto %s\nAlmacenados: %d\nCapacidad: %d\n",p.name, p.count, p.limit);
+    }
+    sem_post(wh->mutex);
+}
+
 void* process_client(void *raw_data) {
     char *buf = malloc(2050 * sizeof(char));
     bzero(buf, 2050);
@@ -93,6 +103,7 @@ int main(int argc, char const *argv[]) {
         int clientfd = get_client_fd(listenfd);
         pthread_t *ct = malloc(1 * sizeof(pthread_t));
         printf("Conexión establecida.\n");
+        print_status(&wh);
         pthread_create(ct, NULL, &process_client, &clientfd);
         pthread_detach(*ct);
         free(ct);
