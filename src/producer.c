@@ -48,28 +48,28 @@ int main(int argc, char **argv) {
         Product server = index_productlist(&servers, ++index_server);
         char *ip = server.name;
         int port = server.count;
-        int clientfd = socket(AF_INET, SOCK_STREAM, 0);
-        struct sockaddr_in sock;
-        sock.sin_family = AF_INET;
-        sock.sin_port = htons((short int)port);
-        inet_aton(ip, &sock.sin_addr);
-        if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
-            printf("Produciendo hacia el Almacén con IP: %s\n", server.name);
-            char *str_products = malloc(100000);
-            sprintf(str_products, "producer");
-            for (int i = 0; i < products.size; ++i) {
-                Product actual = index_productlist(&products, i);
-                int count = actual.count;
-                while (count--)
-                    sprintf(str_products, "%s %s %s %d data", str_products, actual.name, producer_name, ++counter_product);
+        for (int i = 0; i < products.size; ++i) {
+            Product actual = index_productlist(&products, i);
+            int count = actual.count;
+            while (count--) {
+                int clientfd = socket(AF_INET, SOCK_STREAM, 0);
+                struct sockaddr_in sock;
+                sock.sin_family = AF_INET;
+                sock.sin_port = htons((short int)port);
+                inet_aton(ip, &sock.sin_addr);
+                if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
+                    printf("Produciendo hacia el Almacén con IP: %s y Puerto: %d el producto con Nombre: %s y Id: %d\n", server.name, server.count, actual.name, counter_product + 1);
+                    char *str_products = malloc(100000);
+                    sprintf(str_products, "producer %s %s %d data", actual.name, producer_name, ++counter_product);
+                    dprintf(clientfd, "%s", str_products);
+                    free(str_products);
+                    char c;
+                    while (read(clientfd, &c, 1)) { }
+                    printf("Producción terminada en el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
+                } else {
+                    printf("Error conectandose con el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
+                }
             }
-            dprintf(clientfd, "%s", str_products);
-            free(str_products);
-            char c;
-            while (read(clientfd, &c, 1)) { }
-            printf("Producción terminada en el Almacén con IP: %s\n", server.name);
-        } else {
-            printf("Error conectandose con el Almacén con IP: %s\n", server.name);
         }
         if (index_server + 1 >= servers.size)
             index_server = -1;

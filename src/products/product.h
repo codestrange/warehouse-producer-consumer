@@ -64,6 +64,8 @@ Product pop_productlist(ProductList *list);
 
 Product index_productlist(ProductList *list, int index);
 
+Product *indexref_productlist(ProductList *list, int index);
+
 void free_product(Product *product);
 
 void free_productlist(ProductList *list);
