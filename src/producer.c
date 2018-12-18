@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
         if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
             printf("Produciendo hacia el Almacén con IP: %s\n", server.name);
             char *str_products = malloc(100000);
-            sprintf(str_products, "producer ");
+            sprintf(str_products, "producer");
             for (int i = 0; i < products.size; ++i) {
                 Product actual = index_productlist(&products, i);
                 int count = actual.count;
