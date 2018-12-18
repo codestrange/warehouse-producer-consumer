@@ -86,6 +86,8 @@ void free_productdatalist(ProductDataList *list);
 
 void free_product_data(ProductData *item);
 
+int get_size(Warehouse *wh);
+
 void product_init(Product *p, int limit);
 
 void warehouse_init(Warehouse *wh, int limit);
