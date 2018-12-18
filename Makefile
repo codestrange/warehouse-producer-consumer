@@ -13,7 +13,7 @@ run_consumer:
 	./bin/consumer.o ${wdir}:${wport} ${cproducts}
 
 run_producer: 
-	./bin/producer.o ${wdir}:${wport} ${pproducts}
+	./bin/producer.o myproducer ${wdir}:${wport} ${pproducts}
 
 run_memory_check:
 	valgrind --leak-check=yes ./bin/warehouse.o ${wport} ${wproducts}
