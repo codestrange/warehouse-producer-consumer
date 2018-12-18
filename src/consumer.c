@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include "products/product.h"
+#include "utils/parser.h"
 #define _POSIX_C_SOURCE 200809L
 
 void parseArguments(char **args, ProductList *products, ProductList *servers) {
@@ -46,25 +47,45 @@ int main(int argc, char **argv) {
         Product server = index_productlist(&servers, ++index_server);
         char *ip = server.name;
         int port = server.count;
-        for (int i = 0; i < products.size; ++i) {
-            Product actual = index_productlist(&products, i);
-            int count = actual.count;
-            while (count--) {
-                int clientfd = socket(AF_INET, SOCK_STREAM, 0);
-                struct sockaddr_in sock;
-                sock.sin_family = AF_INET;
-                sock.sin_port = htons((short int)port);
-                inet_aton(ip, &sock.sin_addr);
-                if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
-                    printf("Consumiendo del Almacén con IP: %s y Puerto: %d el producto con Nombre: %s y Cantidad: %d\n", server.name, server.count, actual.name, actual.count);
-                    dprintf(clientfd, "consumer %s:%d", actual.name, actual.count);
-                    char c;
-                    while (read(clientfd, &c, 1)) {
-                        write(1, c, 1);
+        if (!products.size) {
+            int clientfd = socket(AF_INET, SOCK_STREAM, 0);
+            struct sockaddr_in sock;
+            sock.sin_family = AF_INET;
+            sock.sin_port = htons((short int)port);
+            inet_aton(ip, &sock.sin_addr);
+            if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
+                printf("Consumiendo del Almacén con IP: %s y Puerto: %d el producto con Nombre: any y Cantidad: 1\n", server.name, server.count);
+                dprintf(clientfd, "consumer");
+                char c;
+                while (read(clientfd, &c, 1)) {
+                    printf("%c", c);
+                }
+                printf("Consumo terminado del Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
+            } else {
+                printf("Error conectandose con el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
+            }
+        } else {
+            for (int i = 0; i < products.size; ++i) {
+                Product actual = index_productlist(&products, i);
+                int count = actual.count;
+                while (count--) {
+                    printf("%d\n", count);
+                    int clientfd = socket(AF_INET, SOCK_STREAM, 0);
+                    struct sockaddr_in sock;
+                    sock.sin_family = AF_INET;
+                    sock.sin_port = htons((short int)port);
+                    inet_aton(ip, &sock.sin_addr);
+                    if (!connect(clientfd, (struct sockaddr *)&sock, sizeof(sock))) {
+                        printf("Consumiendo del Almacén con IP: %s y Puerto: %d el producto con Nombre: %s y Cantidad: %d\n", server.name, server.count, actual.name, 1);
+                        dprintf(clientfd, "consumer %s:%d", actual.name, 1);
+                        char c;
+                        while (read(clientfd, &c, 1)) {
+                            printf("%c", c);
+                        }
+                        printf("Consumo terminado del Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
+                    } else {
+                        printf("Error conectandose con el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
                     }
-                    printf("Consumo terminado del Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
-                } else {
-                    printf("Error conectandose con el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
                 }
             }
         }
