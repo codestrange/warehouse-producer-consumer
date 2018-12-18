@@ -2,7 +2,7 @@ wproducts = A:10 B:10 C:10
 wdir = localhost
 wport = 8080
 
-cproducts = A:1 B:1 C:1
+cproducts = 
 
 pproducts = A:3 B:10 C:5
 
