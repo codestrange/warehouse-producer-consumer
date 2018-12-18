@@ -18,12 +18,10 @@ void* process_client(void *raw_data) {
     ProductDataList rp = req.products;
     bool writing = false;
     bool any = true;
-    if(req.type == PRODUCER) {
+    if (req.type == PRODUCER)
         writing = true;
-    }
-    else if(req.products.size == 0) {
+    else if (req.products.size == 0)
         any = true;
-    }
     for (int i = 0; i < rp.size; ++i) {
         bool finded = false;
         ProductData pc = index_productdatalist(&rp, i);
@@ -88,7 +86,7 @@ int main(int argc, char const *argv[]) {
     /*Fin de la inicialización*/
 
     /*Ciclo Principal*/ 
-    while(true){
+    while (true) {
         printf("Esperando Conexión.\n");
         int clientfd = get_client_fd(listenfd);
         pthread_t *ct = malloc(1 * sizeof(pthread_t));
