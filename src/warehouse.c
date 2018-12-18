@@ -9,20 +9,25 @@
 Warehouse wh;
 
 void* process_client(void *raw_data) {
+    char *buf = malloc(2050 * sizeof(char));
+    bzero(buf, 2050);
     int clientfd = *((int*) raw_data); //Contiene el fd de la conexion del cliente
-    //Falta parsear la peticion del cliente
-    ProductDataList rp = new_productdatalist(10); //Solo para que compile
-    bool writing = false; //Indica si el cliente es productor o consumidor
+    read(clientfd, buf, 2048);
+    Request req = parseRequest(buf);
+    ProductDataList rp = req.products;
+    bool writing = false;
+    if(req.type == PRODUCER) {
+        writing = true;
+    }
     for (int i = 0; i < rp.size; ++i) {
         bool finded = false;
         ProductData pc = index_productdatalist(&rp, i);
-        for (int j = 0; j < wh.products.size; ++j) {
+        for (int j = 0; j < get_size(&wh); ++j) {
             Product pw = index_productlist(&wh.products, j);
             if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
                 finded = true;
                 if (writing) {
                     product_insert(&pw, &wh, pc);
-                    //Falta notificar la insercion al cliente
                 }
                 else {
                     ProductData ret;
@@ -34,6 +39,13 @@ void* process_client(void *raw_data) {
         }
         if (!finded) {
             printf("El producto no se encontraba.\n");
+            sem_wait(wh.mutex);
+            Product newp;
+            product_init(&newp, 0);
+            newp.productsData = new_productdatalist(100);
+            newp.name = pc.name;
+            sem_post(wh.mutex);
+            --i;
         }
     }
 
