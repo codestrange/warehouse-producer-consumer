@@ -96,6 +96,8 @@ void product_insert(Product *p, Warehouse *wh, ProductData data);
 
 void product_remove(Product *p, Warehouse *wh, ProductData *data);
 
+void product_tryremove(Product *p, Warehouse *wh, ProductData *data);
+
 int parseInt(CharList *charList);
 
 ProductList parseProductList(char **arg);

@@ -13,11 +13,16 @@ void* process_client(void *raw_data) {
     bzero(buf, 2050);
     int clientfd = *((int*) raw_data); //Contiene el fd de la conexion del cliente
     read(clientfd, buf, 2048);
+    // printf("Procesando peticion: %s.\n", buf);
     Request req = parseRequest(buf);
     ProductDataList rp = req.products;
     bool writing = false;
+    bool any = true;
     if(req.type == PRODUCER) {
         writing = true;
+    }
+    else if(req.products.size == 0) {
+        any = true;
     }
     for (int i = 0; i < rp.size; ++i) {
         bool finded = false;
@@ -27,13 +32,17 @@ void* process_client(void *raw_data) {
             if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
                 finded = true;
                 if (writing) {
+                    // printf("Almacenando producto de tipo %s.\n", pc.name);
                     product_insert(&pw, &wh, pc);
+                    // printf("Producto de tipo %s almacenado.\n", pc.name);
                 }
                 else {
                     ProductData ret;
+                    // printf("Consumiendo producto de tipo %s.\n", pc.name);
                     product_remove(&pw, &wh, &ret);
-                    dprintf(clientfd,"%s %s %d %s", ret.name, ret.producer_name, ret.id, ret.data);
-                    free_product_data(&ret);
+                    // printf("Consumido producto de tipo %s.\n", pc.name);
+                    dprintf(clientfd,"%s %s %d %s\0", ret.name, ret.producer_name, ret.id, ret.data);
+                    //free_product_data(&ret);
                 }
             }
         }
@@ -48,7 +57,8 @@ void* process_client(void *raw_data) {
             --i;
         }
     }
-
+    printf("Fin de peticion.\n");
+    close(clientfd);
     return 0;
 }
 
@@ -79,10 +89,13 @@ int main(int argc, char const *argv[]) {
 
     /*Ciclo Principal*/ 
     while(true){
+        printf("Esperando Conexión.\n");
         int clientfd = get_client_fd(listenfd);
-        pthread_t ct;
-        pthread_create(&ct, NULL, &process_client, &clientfd);
-        pthread_detach(ct);
+        pthread_t *ct = malloc(1 * sizeof(pthread_t));
+        printf("Conexión establecida.\n");
+        pthread_create(ct, NULL, &process_client, &clientfd);
+        pthread_detach(*ct);
+        free(ct);
     }
     return 0;
 }
