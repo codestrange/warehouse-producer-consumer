@@ -13,29 +13,36 @@ void* process_client(void *raw_data) {
     bzero(buf, 2050);
     int clientfd = *((int*) raw_data); //Contiene el fd de la conexion del cliente
     read(clientfd, buf, 2048);
-    printf("Procesando peticion: %s.\n", buf);
+    // printf("Procesando peticion: %s.\n", buf);
     Request req = parseRequest(buf);
     ProductDataList rp = req.products;
     bool writing = false;
+    bool any = true;
     if(req.type == PRODUCER) {
         writing = true;
+    }
+    else if(req.products.size == 0) {
+        any = true;
     }
     for (int i = 0; i < rp.size; ++i) {
         bool finded = false;
         ProductData pc = index_productdatalist(&rp, i);
-        printf("Almacenando producto %s\n", pc.name);
         for (int j = 0; j < get_size(&wh); ++j) {
             Product pw = index_productlist(&wh.products, j);
             if (strlen(pw.name) == strlen(pc.name) && strcmp(pw.name, pc.name) == 0) {
                 finded = true;
                 if (writing) {
+                    // printf("Almacenando producto de tipo %s.\n", pc.name);
                     product_insert(&pw, &wh, pc);
+                    // printf("Producto de tipo %s almacenado.\n", pc.name);
                 }
                 else {
                     ProductData ret;
+                    // printf("Consumiendo producto de tipo %s.\n", pc.name);
                     product_remove(&pw, &wh, &ret);
-                    dprintf(clientfd,"%s %s %d %s", ret.name, ret.producer_name, ret.id, ret.data);
-                    free_product_data(&ret);
+                    // printf("Consumido producto de tipo %s.\n", pc.name);
+                    dprintf(clientfd,"%s %s %d %s\0", ret.name, ret.producer_name, ret.id, ret.data);
+                    //free_product_data(&ret);
                 }
             }
         }

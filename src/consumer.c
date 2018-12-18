@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     }
     ProductList products = new_productlist(10);
     ProductList servers = new_productlist(10);
-    parseArguments(argv + 2, &products, &servers);
+    parseArguments(argv + 1, &products, &servers);
     if (!servers.size) {
         printf("Error: Se necesitan un parametro. La dirección del almacén.\n");
         return 0;
