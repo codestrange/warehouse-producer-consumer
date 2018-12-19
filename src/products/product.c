@@ -205,7 +205,7 @@ void product_remove(Product *p, Warehouse *wh, ProductData *data) {
 
 void product_tryremove(Product *p, Warehouse *wh, ProductData *data) {
     if(sem_trywait(p->items) < 0) {
-        data = NULL;
+        data->id = -1;
         return;
     }
     sem_wait(wh->items);

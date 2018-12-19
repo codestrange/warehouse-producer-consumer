@@ -58,7 +58,8 @@ int main(int argc, char **argv) {
                 dprintf(clientfd, "consumer");
                 char c;
                 while (read(clientfd, &c, 1)) {
-                    printf("%c", c);
+                    if(&c != NULL)
+                        printf("%c", c);
                 }
                 printf("Consumo terminado del Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
             } else {

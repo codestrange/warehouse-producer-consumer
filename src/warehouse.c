@@ -31,16 +31,16 @@ void* process_client(void *raw_data) {
     if (req.type == PRODUCER)
         writing = true;
     else if (req.products.size == 0) {
-        printf("ANY\n");
+        // printf("ANY\n");
         while(true) {
             for (int j = 0; j < get_size(&wh); ++j) {
                 Product *pw = indexref_productlist(&wh.products, j);
                 ProductData ret;
                 product_tryremove(pw, &wh, &ret);
-                if (&ret == NULL) {
+                if (ret.id < 0) {
                     continue;
                 }
-                dprintf(clientfd,"%s %s %d %s\0", ret.name, ret.producer_name, ret.id, ret.data);    
+                dprintf(clientfd,"%s %s %d %s\n", ret.name, ret.producer_name, ret.id, ret.data);    
             }
         }
     }
@@ -61,8 +61,8 @@ void* process_client(void *raw_data) {
                     // printf("Consumiendo producto de tipo %s.\n", pc.name);
                     product_remove(pw, &wh, &ret);
                     // printf("Consumido producto de tipo %s.\n", pc.name);
-                    printf("Devuelto %s %s %d %s\0", ret.name, ret.producer_name, ret.id, ret.data);
-                    dprintf(clientfd,"%s %s %d %s\0", ret.name, ret.producer_name, ret.id, ret.data);
+                    printf("Devuelto %s %s %d %s\n", ret.name, ret.producer_name, ret.id, ret.data);
+                    dprintf(clientfd,"%s %s %d %s\n", ret.name, ret.producer_name, ret.id, ret.data);
                     //free_product_data(&ret);
                 }
             }
