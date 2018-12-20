@@ -74,6 +74,7 @@ void* process_client(void *raw_data) {
             product_init(&newp, 0);
             newp.productsData = new_productdatalist(100);
             newp.name = pc.name;
+            append_productlist(&wh.products, newp);
             sem_post(wh.mutex);
             --i;
         }
