@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
             } else {
                 printf("Error conectandose con el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
             }
+            close(clientfd);
         } else {
             for (int i = 0; i < products.size; ++i) {
                 Product actual = index_productlist(&products, i);
@@ -87,6 +88,7 @@ int main(int argc, char **argv) {
                     } else {
                         printf("Error conectandose con el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
                     }
+                    close(clientfd);
                 }
             }
         }

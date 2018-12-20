@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
                 } else {
                     printf("Error conectandose con el Almacén con IP: %s y Puerto: %d\n", server.name, server.count);
                 }
+                close(clientfd);
             }
         }
         if (index_server + 1 >= servers.size)
